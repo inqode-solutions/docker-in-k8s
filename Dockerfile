@@ -50,11 +50,6 @@ RUN \
 	update-alternatives --set iptables /usr/sbin/iptables-legacy && \
 	update-alternatives --set ip6tables /usr/sbin/ip6tables-legacy
 
-RUN \
-	mkdir /root/.ssh && \
-	ssh-keygen -b 2048 -t rsa -f /root/.ssh/id_rsa -q -N "" && \
-	cp /root/.ssh/id_rsa.pub /root/.ssh/authorized_keys
-
 #install docker
 ARG DOCKER_CHANNEL
 ARG DOCKER_VERSION
@@ -94,5 +89,25 @@ ENV DISK 10G
 #disk image for /var/lib/docker is created under this directory
 VOLUME /persistent
 
+RUN chmod og+r /etc/ssh/ssh_host_rsa_key
+
+RUN addgroup --gid 3000 user
+RUN adduser --uid 1000 --gid 3000 user
+
+RUN mkdir -p /var/lib/docker/
+RUN mkdir -p /persistent/
+RUN mkdir -p /etc/docker/
+RUN chown -R 1000:3000 /persistent/
+RUN chown -R 1000:3000 /run/
+RUN chown -R 1000:3000 /etc/docker/
+
+USER 1000:3000
+
+RUN \
+	mkdir ~/.ssh && \
+	ssh-keygen -b 2048 -t rsa -f ~/.ssh/id_rsa -q -N "" && \
+	cp ~/.ssh/id_rsa.pub ~/.ssh/authorized_keys
+
+USER 1000:3000
 ENTRYPOINT [ "/entrypoint.sh" ]
 CMD [ "bash" ]
