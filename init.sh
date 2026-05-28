@@ -1,6 +1,8 @@
 #!/bin/bash
 set -xue -o pipefail
 
+SSH_PORT=${SSH_PORT:-2222}
+
 mount -t proc proc /proc/
 mount -t sysfs sys /sys/
 
@@ -34,11 +36,16 @@ ip route add default via 10.0.2.2
 ssh -f -N -o StrictHostKeyChecking=no \
     -R0.0.0.0:2375:127.0.0.1:2375 \
     -R0.0.0.0:2376:127.0.0.1:2376 \
-    -p 2222 \
+    -p ${SSH_PORT} \
     -i /home/user/.ssh/id_rsa \
     user@10.0.2.2
 
-PATH=/usr/bin:$PATH dockerd --userland-proxy-path=$(which diuid-docker-proxy) -H unix:///var/run/docker.sock -H tcp://127.0.0.1:2375
+# Docker daemon starts with Unix socket and TCP listener (for reverse SSH tunnel)
+# Note: TCP on 127.0.0.1 is secured by the SSH reverse tunnel encryption
+PATH=/usr/bin:$PATH dockerd --userland-proxy-path=$(which diuid-docker-proxy) \
+    -H unix:///var/run/docker.sock \
+    -H tcp://127.0.0.1:2375 \
+    ${DIUID_DOCKERD_FLAGS:-}
 
 ret=$?
 if [ $ret -ne 0 ]; then

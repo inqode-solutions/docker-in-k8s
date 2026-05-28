@@ -1,6 +1,7 @@
 #!/bin/bash
+set -xue -o pipefail
 
-#set -xue -o pipefail
+SSH_PORT=${SSH_PORT:-2222}
 ARGS=$@
 
 echo "Docker: $(dockerd --version)"
@@ -10,7 +11,7 @@ echo
 echo "Configuration: MEM=$MEM DISK=$DISK"
 
 #start sshd
-/usr/sbin/sshd -p 2222 -h /etc/ssh/ssh_host_rsa_key -o "UsePrivilegeSeparation no" -o "UsePAM no"
+/usr/sbin/sshd -p ${SSH_PORT} -h /etc/ssh/ssh_host_rsa_key -o "UsePAM no"
 
 # Create the ext4 volume image for /var/lib/docker
 if [ ! -f /persistent/var_lib_docker.img ]; then
@@ -25,7 +26,19 @@ if [ $(stat --file-system --format=%T $TMPDIR) != tmpfs ]; then
 fi
 
 slirp4netns --target-type=bess /run/slirp4netns-bess.sock >/tmp/slirp4netns-bess.log 2>&1 &
-exec /linux/linux rootfstype=hostfs rw vec0:transport=bess,dst=/run/slirp4netns-bess.sock,depth=128,gro=1 mem=$MEM init=/init.sh 2>&1 &
+SLIRP_PID=$!
+sleep 1
+if ! kill -0 $SLIRP_PID 2>/dev/null; then
+    echo "slirp4netns failed to start"
+    cat /tmp/slirp4netns-bess.log
+    exit 1
+fi
+
+# Set ownership of /run at runtime since it's a tmpfs
+chown -R 1000:3000 /run/ 2>/dev/null || true
+
+/linux/linux rootfstype=hostfs rw vec0:transport=bess,dst=/run/slirp4netns-bess.sock,depth=128,gro=1 mem=$MEM init=/init.sh 2>&1 &
+KERNEL_PID=$!
 
 export DOCKER_HOST=tcp://127.0.0.1:2375
 
@@ -35,12 +48,12 @@ while true; do
 		echo ""
 		break
 	fi
-	#if ! /sbin/start-stop-daemon --status --pidfile /tmp/kernel.pid; then
-	#	echo ""
-	#	echo failed to start uml kernel:
-	#	cat /tmp/kernel.log
-	#	exit 1
-	#fi
+	# Check if kernel is still running
+	if ! kill -0 $KERNEL_PID 2>/dev/null; then
+		echo ""
+		echo "Failed to start UML kernel"
+		exit 1
+	fi
 
 	echo -n "."
 	sleep 0.5

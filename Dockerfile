@@ -89,24 +89,22 @@ ENV DISK 10G
 #disk image for /var/lib/docker is created under this directory
 VOLUME /persistent
 
-RUN chmod og+r /etc/ssh/ssh_host_rsa_key
+RUN chmod 640 /etc/ssh/ssh_host_rsa_key
 
-RUN addgroup --gid 3000 user
-RUN adduser --uid 1000 --gid 3000 user
-
-RUN mkdir -p /var/lib/docker/
-RUN mkdir -p /persistent/
-RUN mkdir -p /etc/docker/
-RUN chown -R 1000:3000 /persistent/
-RUN chown -R 1000:3000 /run/
-RUN chown -R 1000:3000 /etc/docker/
+RUN addgroup --gid 3000 user && \
+    adduser --uid 1000 --gid 3000 user && \
+    mkdir -p /var/lib/docker/ /persistent/ /etc/docker/ && \
+    chown -R 1000:3000 /persistent/ /etc/docker/
 
 USER 1000:3000
 
 RUN \
 	mkdir ~/.ssh && \
 	ssh-keygen -b 2048 -t rsa -f ~/.ssh/id_rsa -q -N "" && \
-	cp ~/.ssh/id_rsa.pub ~/.ssh/authorized_keys
+	cp ~/.ssh/id_rsa.pub ~/.ssh/authorized_keys && \
+	chmod 700 ~/.ssh && \
+	chmod 600 ~/.ssh/id_rsa && \
+	chmod 644 ~/.ssh/id_rsa.pub ~/.ssh/authorized_keys
 
 USER 1000:3000
 ENTRYPOINT [ "/entrypoint.sh" ]
