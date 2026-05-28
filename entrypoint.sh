@@ -11,7 +11,7 @@ echo
 echo "Configuration: MEM=$MEM DISK=$DISK"
 
 #start sshd
-/usr/sbin/sshd -p ${SSH_PORT} -h /etc/ssh/ssh_host_rsa_key -o "UsePAM no"
+/usr/sbin/sshd -p ${SSH_PORT} -o "UsePAM no"
 
 # Create the ext4 volume image for /var/lib/docker
 if [ ! -f /persistent/var_lib_docker.img ]; then

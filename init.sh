@@ -41,7 +41,9 @@ ssh -f -N -o StrictHostKeyChecking=no \
     user@10.0.2.2
 
 # Docker daemon starts with Unix socket and TCP listener (for reverse SSH tunnel)
-# Note: TCP on 127.0.0.1 is secured by the SSH reverse tunnel encryption
+# Security: TCP on 127.0.0.1 is localhost-only and accessed externally only through
+# the SSH reverse tunnel which provides encryption. The Unix socket remains available
+# for local access without network overhead.
 PATH=/usr/bin:$PATH dockerd --userland-proxy-path=$(which diuid-docker-proxy) \
     -H unix:///var/run/docker.sock \
     -H tcp://127.0.0.1:2375 \

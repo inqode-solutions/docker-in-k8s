@@ -90,9 +90,10 @@ ENV DISK 10G
 VOLUME /persistent
 
 RUN \
-	chmod 600 /etc/ssh/ssh_host_rsa_key && \
+	chmod 640 /etc/ssh/ssh_host_rsa_key && \
 	addgroup --gid 3000 user && \
-	adduser --uid 1000 --gid 3000 user && \
+	adduser --uid 1000 --gid 3000 user --ingroup user && \
+	usermod -aG ssh user && \
 	mkdir -p /var/lib/docker/ /persistent/ /etc/docker/ && \
 	chown -R 1000:3000 /persistent/ /etc/docker/ && \
 	mkdir -p /home/user/.ssh && \
