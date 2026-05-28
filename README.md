@@ -11,16 +11,16 @@ The network communication is bridged by slirp.
 
 ## Example
 
-`docker run -it --rm --tmpfs /umlshm:rw,nosuid,nodev,exec,size=8g weberlars/diuid docker info`
+`docker run -it --rm --tmpfs /umlshm:rw,nosuid,nodev,exec,size=8g ghcr.io/inqode-solutions/docker-in-k8s:master docker info`
 
 To configure memory size and `/var/lib/docker` size:
 
-`docker run -it --rm -e MEM=4G -e DISK=20G --tmpfs /umlshm:rw,nosuid,nodev,exec,size=8g weberlars/diuid docker info`
+`docker run -it --rm -e MEM=4G -e DISK=20G --tmpfs /umlshm:rw,nosuid,nodev,exec,size=8g ghcr.io/inqode-solutions/docker-in-k8s:master docker info`
 
 To preserve `/var/lib/docker` disk:
 
-`docker run -it --rm -v /somewhere:/persistent --tmpfs /umlshm:rw,nosuid,nodev,exec,size=8g weberlars/diuid docker info`
+`docker run -it --rm -v /somewhere:/persistent --tmpfs /umlshm:rw,nosuid,nodev,exec,size=8g ghcr.io/inqode-solutions/docker-in-k8s:master docker info`
 
 To run as a non-root user:
 
-`docker run --user 1000:3000 -it --rm --tmpfs /umlshm:rw,nosuid,nodev,exec,size=8g weberlars/diuid docker info`
+`docker run --user 1000:3000 -it --rm --tmpfs /umlshm:rw,nosuid,nodev,exec,size=8g ghcr.io/inqode-solutions/docker-in-k8s:master docker info`
