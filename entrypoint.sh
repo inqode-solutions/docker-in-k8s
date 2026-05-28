@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#set -xue -o pipefail
+set -e
 ARGS=$@
 
 echo "Docker: $(dockerd --version)"
@@ -9,16 +9,17 @@ echo "Rootfs: $(lsb_release -ds)"
 echo
 echo "Configuration: MEM=$MEM DISK=$DISK"
 
+# verify TMPDIR configuration
+if [ $(stat --file-system --format=%T $TMPDIR) != tmpfs ]; then
+    echo "Please mount a tmpfs on $TMPDIR like this: \`docker run --tmpfs $TMPDIR:rw,nosuid,nodev,exec,size=8g\`"
+	exit 1
+fi
+
 # Create the ext4 volume image for /var/lib/docker
 if [ ! -f /persistent/var_lib_docker.img ]; then
     echo "Formatting /persistent/var_lib_docker.img"
     dd if=/dev/zero of=/persistent/var_lib_docker.img bs=1 count=0 seek=${DISK} > /dev/null 2>&1
     mkfs.ext4 /persistent/var_lib_docker.img > /dev/null 2>&1
-fi
-
-# verify TMPDIR configuration
-if [ $(stat --file-system --format=%T $TMPDIR) != tmpfs ]; then
-    echo "For better performance, consider mounting a tmpfs on $TMPDIR like this: \`docker run --tmpfs $TMPDIR:rw,nosuid,nodev,exec,size=8g\`"
 fi
 
 /sbin/start-stop-daemon --start --background --make-pidfile --pidfile /tmp/sshd.pid --exec /bin/bash -- -c "exec /usr/sbin/sshd -D -p 2222 -h /etc/ssh/ssh_host_rsa_key -o 'UsePAM no' -o 'GatewayPorts yes' > /tmp/sshd.log 2>&1"

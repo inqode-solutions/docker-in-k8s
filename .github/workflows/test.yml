@@ -11,6 +11,8 @@ jobs:
     timeout-minutes: 120
     env:
       DOCKER_BUILDKIT: 1
+      MEM: 2G
+      DISK: 2G
     steps:
     - uses: actions/checkout@v4
       with:
@@ -20,9 +22,9 @@ jobs:
     - name: "Build the diuid image"
       run: docker build -t diuid .
     - name: "Test: Hello world"
-      run: docker run --rm diuid docker run hello-world
+      run: docker run --rm --tmpfs /umlshm:rw,nosuid,nodev,exec,size=2g diuid docker run hello-world
     - name: "Test: nginx"
       run: |
-        docker run -d --name diuid-nginx -p 80:80 diuid docker run -p 80:80 nginx:alpine
-        for i in {1..5}; do curl http://localhost && break || sleep 10; done
+        docker run -d --name diuid-nginx --tmpfs /umlshm:rw,nosuid,nodev,exec,size=2g -p 8080:8080 diuid docker run -p 8080:80 nginx:alpine
+        for i in {1..5}; do curl http://localhost:8080 && break || sleep 10; done
         docker rm -f diuid-nginx
