@@ -62,7 +62,6 @@ RUN \
 
 #install diuid-docker-proxy
 COPY --from=diuid-docker-proxy /diuid-docker-proxy /usr/bin
-RUN echo GatewayPorts=yes >> /etc/ssh/sshd_config
 
 #install slirp4netns (used by UML)
 ARG SLIRP4NETNS_VERSION
@@ -72,22 +71,13 @@ RUN \
 
 #install kernel and scripts
 COPY --from=kernel_build /out/linux /linux/linux
-ADD kernel.sh kernel.sh
 ADD entrypoint.sh entrypoint.sh
 ADD init.sh init.sh
 
 #specify the of memory that the uml kernel can use 
 ENV MEM 2G
 ENV TMPDIR /umlshm
-
-#it is recommended to override /umlshm with
-#--tmpfs /umlshm:rw,nosuid,nodev,exec,size=8g
-VOLUME /umlshm
-
 ENV DISK 10G
-
-#disk image for /var/lib/docker is created under this directory
-VOLUME /persistent
 
 RUN chmod og+r /etc/ssh/ssh_host_rsa_key
 
@@ -101,6 +91,13 @@ RUN chown -R 1000:3000 /persistent/
 RUN chown -R 1000:3000 /run/
 RUN chown -R 1000:3000 /etc/docker/
 
+#it is recommended to override /umlshm with
+#--tmpfs /umlshm:rw,nosuid,nodev,exec,size=8g
+VOLUME /umlshm
+
+#disk image for /var/lib/docker is created under this directory
+VOLUME /persistent
+
 USER 1000:3000
 
 RUN \
@@ -108,6 +105,5 @@ RUN \
 	ssh-keygen -b 2048 -t rsa -f ~/.ssh/id_rsa -q -N "" && \
 	cp ~/.ssh/id_rsa.pub ~/.ssh/authorized_keys
 
-USER 1000:3000
 ENTRYPOINT [ "/entrypoint.sh" ]
 CMD [ "bash" ]
