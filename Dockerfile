@@ -5,7 +5,7 @@ ARG DOCKER_CHANNEL=stable
 ARG DOCKER_VERSION=5:20.10.12~3-0~debian-bullseye
 ARG SLIRP4NETNS_VERSION=1.2.0-beta.0
 
-FROM debian:$DEBIAN_VERSION as kernel_build
+FROM debian:$DEBIAN_VERSION AS kernel_build
 
 RUN \
 	apt-get update && \
@@ -50,11 +50,6 @@ RUN \
 	update-alternatives --set iptables /usr/sbin/iptables-legacy && \
 	update-alternatives --set ip6tables /usr/sbin/ip6tables-legacy
 
-RUN \
-	mkdir /root/.ssh && \
-	ssh-keygen -b 2048 -t rsa -f /root/.ssh/id_rsa -q -N "" && \
-	cp /root/.ssh/id_rsa.pub /root/.ssh/authorized_keys
-
 #install docker
 ARG DOCKER_CHANNEL
 ARG DOCKER_VERSION
@@ -67,7 +62,6 @@ RUN \
 
 #install diuid-docker-proxy
 COPY --from=diuid-docker-proxy /diuid-docker-proxy /usr/bin
-RUN echo GatewayPorts=yes >> /etc/ssh/sshd_config
 
 #install slirp4netns (used by UML)
 ARG SLIRP4NETNS_VERSION
@@ -77,22 +71,38 @@ RUN \
 
 #install kernel and scripts
 COPY --from=kernel_build /out/linux /linux/linux
-ADD kernel.sh kernel.sh
 ADD entrypoint.sh entrypoint.sh
 ADD init.sh init.sh
 
 #specify the of memory that the uml kernel can use 
-ENV MEM 2G
-ENV TMPDIR /umlshm
+ENV MEM=2G
+ENV TMPDIR=/umlshm
+ENV DISK=10G
+
+RUN \
+	chmod og+r /etc/ssh/ssh_host_rsa_key && \
+	addgroup --gid 3000 user && \
+	adduser --uid 1000 --gid 3000 user && \
+	mkdir -p /var/lib/docker/ && \
+	mkdir -p /persistent/ && \
+	mkdir -p /etc/docker/ && \
+	chown -R 1000:3000 /persistent/ && \
+	chown -R 1000:3000 /run/ && \
+	chown -R 1000:3000 /etc/docker/
 
 #it is recommended to override /umlshm with
 #--tmpfs /umlshm:rw,nosuid,nodev,exec,size=8g
 VOLUME /umlshm
 
-ENV DISK 10G
-
 #disk image for /var/lib/docker is created under this directory
 VOLUME /persistent
+
+USER 1000:3000
+
+RUN \
+	mkdir ~/.ssh && \
+	ssh-keygen -b 2048 -t rsa -f ~/.ssh/id_rsa -q -N "" && \
+	cp ~/.ssh/id_rsa.pub ~/.ssh/authorized_keys
 
 ENTRYPOINT [ "/entrypoint.sh" ]
 CMD [ "bash" ]

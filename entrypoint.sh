@@ -1,4 +1,6 @@
 #!/bin/bash
+
+set -e
 ARGS=$@
 
 echo "Docker: $(dockerd --version)"
@@ -7,8 +9,11 @@ echo "Rootfs: $(lsb_release -ds)"
 echo
 echo "Configuration: MEM=$MEM DISK=$DISK"
 
-#start sshd
-/etc/init.d/ssh start
+# verify TMPDIR configuration
+if [ $(stat --file-system --format=%T $TMPDIR) != tmpfs ]; then
+    echo "Please mount a tmpfs on $TMPDIR like this: \`docker run --tmpfs $TMPDIR:rw,nosuid,nodev,exec,size=8g\`"
+	exit 1
+fi
 
 # Create the ext4 volume image for /var/lib/docker
 if [ ! -f /persistent/var_lib_docker.img ]; then
@@ -17,28 +22,16 @@ if [ ! -f /persistent/var_lib_docker.img ]; then
     mkfs.ext4 /persistent/var_lib_docker.img > /dev/null 2>&1
 fi
 
-# verify TMPDIR configuration
-if [ $(stat --file-system --format=%T $TMPDIR) != tmpfs ]; then
-    echo "For better performance, consider mounting a tmpfs on $TMPDIR like this: \`docker run --tmpfs $TMPDIR:rw,nosuid,nodev,exec,size=8g\`"
+/sbin/start-stop-daemon --start --background --make-pidfile --pidfile /tmp/sshd.pid --exec /bin/bash -- -c "exec /usr/sbin/sshd -D -p 2222 -h /etc/ssh/ssh_host_rsa_key -o 'UsePAM no' -o 'GatewayPorts yes' > /tmp/sshd.log 2>&1"
+/sbin/start-stop-daemon --start --background --make-pidfile --pidfile /tmp/slirp4netns.pid --exec /bin/bash -- -c "exec slirp4netns --target-type=bess /run/slirp4netns-bess.sock > /tmp/slirp4netns-bess.log 2>&1"
+
+if [ "$ARGS" == "--foreground" ]; then
+	exec /linux/linux rootfstype=hostfs rw vec0:transport=bess,dst=/run/slirp4netns-bess.sock,depth=128,gro=1 mem=$MEM init=/init.sh
+else
+	/sbin/start-stop-daemon --start --background --make-pidfile --pidfile /tmp/kernel.pid --exec /bin/bash -- -c "exec /linux/linux rootfstype=hostfs rw vec0:transport=bess,dst=/run/slirp4netns-bess.sock,depth=128,gro=1 mem=$MEM init=/init.sh > /tmp/kernel.log 2>&1"
 fi
 
-#start the uml kernel with docker inside
-echo "DIUID_DOCKERD_FLAGS=\"$DIUID_DOCKERD_FLAGS\"" > /tmp/env
-
-# Get docker group from DIUID_DOCKERD_FLAGS
-DIUID_DOCKERD_GROUP='docker'
-DIUID_DOCKERD_OPTS=`getopt -q -o G: --long group: -n 'getopt' -- $DIUID_DOCKERD_FLAGS`
-eval set -- "$DIUID_DOCKERD_OPTS"
-while true; do
-  case "$1" in
-	-G|--group ) DIUID_DOCKERD_GROUP="$2"; shift 2 ;;
-    -- ) shift; break ;;
-    * ) break ;;
-  esac
-done
-echo "DIUID_DOCKERD_GROUP=\"$DIUID_DOCKERD_GROUP\"" >> /tmp/env
-
-/sbin/start-stop-daemon --start --background --make-pidfile --pidfile /tmp/kernel.pid --exec /bin/bash -- -c "exec /kernel.sh > /tmp/kernel.log 2>&1"
+export DOCKER_HOST=tcp://127.0.0.1:2375
 
 echo -n "waiting for dockerd "
 while true; do
@@ -50,6 +43,7 @@ while true; do
 		echo ""
 		echo failed to start uml kernel:
 		cat /tmp/kernel.log
+		cat /tmp/sshd.log
 		exit 1
 	fi
 
