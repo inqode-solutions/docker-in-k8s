@@ -24,3 +24,7 @@ To configure memory size and `/var/lib/docker` size:
 To preserve `/var/lib/docker` disk:
 
 `docker run -it --rm -v /somewhere:/persistent weberlars/diuid docker info`
+
+To run as a non-root user:
+
+`docker run --user 1000:3000 -it --rm weberlars/diuid docker info`

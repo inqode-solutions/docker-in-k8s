@@ -5,7 +5,7 @@ ARG DOCKER_CHANNEL=stable
 ARG DOCKER_VERSION=5:20.10.12~3-0~debian-bullseye
 ARG SLIRP4NETNS_VERSION=1.2.0-beta.0
 
-FROM debian:$DEBIAN_VERSION as kernel_build
+FROM debian:$DEBIAN_VERSION AS kernel_build
 
 RUN \
 	apt-get update && \
@@ -75,21 +75,20 @@ ADD entrypoint.sh entrypoint.sh
 ADD init.sh init.sh
 
 #specify the of memory that the uml kernel can use 
-ENV MEM 2G
-ENV TMPDIR /umlshm
-ENV DISK 10G
+ENV MEM=2G
+ENV TMPDIR=/umlshm
+ENV DISK=10G
 
-RUN chmod og+r /etc/ssh/ssh_host_rsa_key
-
-RUN addgroup --gid 3000 user
-RUN adduser --uid 1000 --gid 3000 user
-
-RUN mkdir -p /var/lib/docker/
-RUN mkdir -p /persistent/
-RUN mkdir -p /etc/docker/
-RUN chown -R 1000:3000 /persistent/
-RUN chown -R 1000:3000 /run/
-RUN chown -R 1000:3000 /etc/docker/
+RUN \
+	chmod og+r /etc/ssh/ssh_host_rsa_key && \
+	addgroup --gid 3000 user && \
+	adduser --uid 1000 --gid 3000 user && \
+	mkdir -p /var/lib/docker/ && \
+	mkdir -p /persistent/ && \
+	mkdir -p /etc/docker/ && \
+	chown -R 1000:3000 /persistent/ && \
+	chown -R 1000:3000 /run/ && \
+	chown -R 1000:3000 /etc/docker/
 
 #it is recommended to override /umlshm with
 #--tmpfs /umlshm:rw,nosuid,nodev,exec,size=8g

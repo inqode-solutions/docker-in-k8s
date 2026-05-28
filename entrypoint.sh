@@ -21,9 +21,14 @@ if [ $(stat --file-system --format=%T $TMPDIR) != tmpfs ]; then
     echo "For better performance, consider mounting a tmpfs on $TMPDIR like this: \`docker run --tmpfs $TMPDIR:rw,nosuid,nodev,exec,size=8g\`"
 fi
 
-/sbin/start-stop-daemon --start --background --make-pidfile --pidfile /tmp/sshd.pid --exec /bin/bash -- -c "exec /usr/sbin/sshd -D -p 2222 -h /etc/ssh/ssh_host_rsa_key -o "UsePrivilegeSeparation no" -o "UsePAM no" -o "GatewayPorts yes" > /tmp/slirp4netns-bess.log 2>&1"
+/sbin/start-stop-daemon --start --background --make-pidfile --pidfile /tmp/sshd.pid --exec /bin/bash -- -c "exec /usr/sbin/sshd -D -p 2222 -h /etc/ssh/ssh_host_rsa_key -o 'UsePAM no' -o 'GatewayPorts yes' > /tmp/sshd.log 2>&1"
 /sbin/start-stop-daemon --start --background --make-pidfile --pidfile /tmp/slirp4netns.pid --exec /bin/bash -- -c "exec slirp4netns --target-type=bess /run/slirp4netns-bess.sock > /tmp/slirp4netns-bess.log 2>&1"
-/sbin/start-stop-daemon --start --background --make-pidfile --pidfile /tmp/kernel.pid --exec /bin/bash -- -c "exec /linux/linux rootfstype=hostfs rw vec0:transport=bess,dst=/run/slirp4netns-bess.sock,depth=128,gro=1 mem=$MEM init=/init.sh > /tmp/kernel.log 2>&1"
+
+if [ "$ARGS" == "--foreground" ]; then
+	exec /linux/linux rootfstype=hostfs rw vec0:transport=bess,dst=/run/slirp4netns-bess.sock,depth=128,gro=1 mem=$MEM init=/init.sh
+else
+	/sbin/start-stop-daemon --start --background --make-pidfile --pidfile /tmp/kernel.pid --exec /bin/bash -- -c "exec /linux/linux rootfstype=hostfs rw vec0:transport=bess,dst=/run/slirp4netns-bess.sock,depth=128,gro=1 mem=$MEM init=/init.sh > /tmp/kernel.log 2>&1"
+fi
 
 export DOCKER_HOST=tcp://127.0.0.1:2375
 
@@ -37,6 +42,7 @@ while true; do
 		echo ""
 		echo failed to start uml kernel:
 		cat /tmp/kernel.log
+		cat /tmp/sshd.log
 		exit 1
 	fi
 
