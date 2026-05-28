@@ -33,7 +33,7 @@ COPY --from=kernel_build /KERNEL.config /KERNEL.CONFIG
 CMD ["cat", "/KERNEL.CONFIG"]
 
 FROM golang:$GOLANG_VERSION AS diuid-docker-proxy
-COPY diuid-docker-proxy /go/src/github.com/weber-software/diuid/diuid-docker-proxy
+COPY go.mod main.go /go/src/github.com/weber-software/diuid/diuid-docker-proxy/
 WORKDIR /go/src/github.com/weber-software/diuid/diuid-docker-proxy
 RUN go build -o /diuid-docker-proxy
 
@@ -89,22 +89,19 @@ ENV DISK 10G
 #disk image for /var/lib/docker is created under this directory
 VOLUME /persistent
 
-RUN chmod 640 /etc/ssh/ssh_host_rsa_key
-
-RUN addgroup --gid 3000 user && \
-    adduser --uid 1000 --gid 3000 user && \
-    mkdir -p /var/lib/docker/ /persistent/ /etc/docker/ && \
-    chown -R 1000:3000 /persistent/ /etc/docker/
-
-USER 1000:3000
-
 RUN \
-	mkdir ~/.ssh && \
-	ssh-keygen -b 2048 -t rsa -f ~/.ssh/id_rsa -q -N "" && \
-	cp ~/.ssh/id_rsa.pub ~/.ssh/authorized_keys && \
-	chmod 700 ~/.ssh && \
-	chmod 600 ~/.ssh/id_rsa && \
-	chmod 644 ~/.ssh/id_rsa.pub ~/.ssh/authorized_keys
+	chmod 600 /etc/ssh/ssh_host_rsa_key && \
+	addgroup --gid 3000 user && \
+	adduser --uid 1000 --gid 3000 user && \
+	mkdir -p /var/lib/docker/ /persistent/ /etc/docker/ && \
+	chown -R 1000:3000 /persistent/ /etc/docker/ && \
+	mkdir -p /home/user/.ssh && \
+	ssh-keygen -b 2048 -t rsa -f /home/user/.ssh/id_rsa -q -N "" && \
+	cp /home/user/.ssh/id_rsa.pub /home/user/.ssh/authorized_keys && \
+	chmod 700 /home/user/.ssh && \
+	chmod 600 /home/user/.ssh/id_rsa && \
+	chmod 644 /home/user/.ssh/id_rsa.pub /home/user/.ssh/authorized_keys && \
+	chown -R 1000:3000 /home/user
 
 USER 1000:3000
 ENTRYPOINT [ "/entrypoint.sh" ]
