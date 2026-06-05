@@ -1,5 +1,5 @@
 ARG DEBIAN_VERSION=13.5
-ARG KERNEL_VERSION=5.15.209
+ARG KERNEL_VERSION=6.18.34
 ARG GOLANG_VERSION=1.17.6
 ARG DOCKER_CHANNEL=stable
 ARG DOCKER_VERSION=5:29.1.5-1~debian.13~trixie
@@ -15,7 +15,7 @@ RUN \
 ARG KERNEL_VERSION
 
 RUN \
-	wget https://cdn.kernel.org/pub/linux/kernel/v5.x/linux-$KERNEL_VERSION.tar.xz && \
+	wget https://cdn.kernel.org/pub/linux/kernel/v6.x/linux-$KERNEL_VERSION.tar.xz && \
 	tar -xf linux-$KERNEL_VERSION.tar.xz && \
 	rm linux-$KERNEL_VERSION.tar.xz
 
