@@ -1,8 +1,8 @@
-ARG DEBIAN_VERSION=11.2
+ARG DEBIAN_VERSION=13.5
 ARG KERNEL_VERSION=5.15
 ARG GOLANG_VERSION=1.17.6
 ARG DOCKER_CHANNEL=stable
-ARG DOCKER_VERSION=5:20.10.12~3-0~debian-bullseye
+ARG DOCKER_VERSION=5:29.1.5-1~debian.13~trixie
 ARG SLIRP4NETNS_VERSION=1.2.0-beta.0
 
 FROM debian:$DEBIAN_VERSION AS kernel_build
@@ -44,7 +44,7 @@ LABEL maintainer="weber@weber-software.com"
 RUN \
 	apt-get update && \
 	apt-get install -y wget net-tools openssh-server psmisc rng-tools \
-	apt-transport-https ca-certificates gnupg2 software-properties-common iptables iproute2
+	apt-transport-https ca-certificates gnupg2 lsb-release iptables iproute2
 
 RUN \
 	update-alternatives --set iptables /usr/sbin/iptables-legacy && \
@@ -54,8 +54,10 @@ RUN \
 ARG DOCKER_CHANNEL
 ARG DOCKER_VERSION
 RUN \
-    wget -O - https://download.docker.com/linux/debian/gpg | apt-key add - && \
-    add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/debian $(lsb_release -cs) $DOCKER_CHANNEL" && \
+    mkdir -p /etc/apt/keyrings && \
+    wget -O /etc/apt/keyrings/docker.gpg https://download.docker.com/linux/debian/gpg && \
+    chmod a+r /etc/apt/keyrings/docker.gpg && \
+    echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/debian $(lsb_release -cs) $DOCKER_CHANNEL" > /etc/apt/sources.list.d/docker.list && \
     apt-get update && \
     apt-cache madison docker-ce && \
     apt-get install -y docker-ce=$DOCKER_VERSION docker-ce-cli=$DOCKER_VERSION containerd.io
