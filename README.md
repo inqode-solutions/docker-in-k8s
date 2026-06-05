@@ -26,25 +26,5 @@ To run as a non-root user:
 
 ## Kubernetes Sidecar
 
-This image can be used as a sidecar container in a Kubernetes pod to provide Docker-in-Docker capabilities. This allows your main application containers to build and run Docker images without requiring privileged access to the host Docker socket.
+This image can be used as a sidecar container in a Kubernetes pod to provide Docker-in-Kubernetes capabilities. This allows your main application containers to build and run Docker images without requiring privileged access.
 
-Example pod configuration:
-
-```yaml
-apiVersion: v1
-kind: Pod
-metadata:
-  name: docker-in-k8s-pod
-spec:
-  containers:
-    - name: app
-      image: your-app-image
-      env:
-        - name: DOCKER_HOST
-          value: "tcp://localhost:2375"
-    - name: docker-in-uml
-      image: ghcr.io/inqode-solutions/docker-in-k8s:master
-      args: ["--tmpfs", "/umlshm:rw,nosuid,nodev,exec,size=8g"]
-      ports:
-        - containerPort: 2375
-```
