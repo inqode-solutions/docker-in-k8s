@@ -1,36 +1,8 @@
 ARG DEBIAN_VERSION=13.5
-ARG KERNEL_VERSION=5.15
 ARG GOLANG_VERSION=1.17.6
 ARG DOCKER_CHANNEL=stable
 ARG DOCKER_VERSION=5:29.1.5-1~debian.13~trixie
 ARG SLIRP4NETNS_VERSION=1.2.0-beta.0
-
-FROM debian:$DEBIAN_VERSION AS kernel_build
-
-RUN \
-	apt-get update && \
-	apt-get install git fakeroot build-essential ncurses-dev xz-utils libssl-dev bc wget flex bison libelf-dev -y && \
-	apt-get install -y --no-install-recommends libarchive-tools
-
-ARG KERNEL_VERSION
-
-RUN \
-	wget https://cdn.kernel.org/pub/linux/kernel/v5.x/linux-$KERNEL_VERSION.tar.xz && \
-	tar -xf linux-$KERNEL_VERSION.tar.xz && \
-	rm linux-$KERNEL_VERSION.tar.xz
-
-WORKDIR linux-$KERNEL_VERSION
-COPY KERNEL.config .config
-RUN make ARCH=um oldconfig && make ARCH=um prepare
-RUN make ARCH=um -j `nproc`
-RUN mkdir /out && cp -f linux /out/linux
-
-RUN cp .config /KERNEL.config
-
-# usage: docker build -t foo --target print_config . && docker run -it --rm foo > KERNEL.config
-FROM debian:$DEBIAN_VERSION AS print_config
-COPY --from=kernel_build /KERNEL.config /KERNEL.CONFIG
-CMD ["cat", "/KERNEL.CONFIG"]
 
 FROM golang:$GOLANG_VERSION AS diuid-docker-proxy
 COPY diuid-docker-proxy /go/src/github.com/weber-software/diuid/diuid-docker-proxy
@@ -45,7 +17,7 @@ RUN \
 	apt-get update && \
 	apt-get install -y wget net-tools openssh-server psmisc rng-tools \
 	apt-transport-https ca-certificates gnupg2 lsb-release iptables iproute2 \
-	e2fsprogs
+	e2fsprogs user-mode-linux
 
 RUN \
 	update-alternatives --set iptables /usr/sbin/iptables-legacy && \
@@ -73,7 +45,6 @@ RUN \
   chmod +x /usr/bin/slirp4netns
 
 #install kernel and scripts
-COPY --from=kernel_build /out/linux /linux/linux
 ADD entrypoint.sh entrypoint.sh
 ADD init.sh init.sh
 

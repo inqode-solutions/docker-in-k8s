@@ -4,7 +4,7 @@ set -e
 ARGS=$@
 
 echo "Docker: $(dockerd --version)"
-echo "Kernel: $(/linux/linux --version)"
+echo "Kernel: $(/usr/bin/linux --version)"
 echo "Rootfs: $(lsb_release -ds)"
 echo
 echo "Configuration: MEM=$MEM DISK=$DISK"
@@ -26,9 +26,9 @@ fi
 /sbin/start-stop-daemon --start --background --make-pidfile --pidfile /tmp/slirp4netns.pid --exec /bin/bash -- -c "exec slirp4netns --target-type=bess /run/slirp4netns-bess.sock > /tmp/slirp4netns-bess.log 2>&1"
 
 if [ "$ARGS" == "--foreground" ]; then
-	exec /linux/linux rootfstype=hostfs rw vec0:transport=bess,dst=/run/slirp4netns-bess.sock,depth=128,gro=1 mem=$MEM init=/init.sh
+	exec /usr/bin/linux rootfstype=hostfs rw vec0:transport=bess,dst=/run/slirp4netns-bess.sock,depth=128,gro=1 mem=$MEM init=/init.sh
 else
-	/sbin/start-stop-daemon --start --background --make-pidfile --pidfile /tmp/kernel.pid --exec /bin/bash -- -c "exec /linux/linux rootfstype=hostfs rw vec0:transport=bess,dst=/run/slirp4netns-bess.sock,depth=128,gro=1 mem=$MEM init=/init.sh > /tmp/kernel.log 2>&1"
+	/sbin/start-stop-daemon --start --background --make-pidfile --pidfile /tmp/kernel.pid --exec /bin/bash -- -c "exec /usr/bin/linux rootfstype=hostfs rw vec0:transport=bess,dst=/run/slirp4netns-bess.sock,depth=128,gro=1 mem=$MEM init=/init.sh > /tmp/kernel.log 2>&1"
 fi
 
 export DOCKER_HOST=tcp://127.0.0.1:2375
