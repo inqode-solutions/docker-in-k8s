@@ -44,7 +44,8 @@ LABEL maintainer="weber@weber-software.com"
 RUN \
 	apt-get update && \
 	apt-get install -y wget net-tools openssh-server psmisc rng-tools \
-	apt-transport-https ca-certificates gnupg2 lsb-release iptables iproute2
+	apt-transport-https ca-certificates gnupg2 lsb-release iptables iproute2 \
+	e2fsprogs
 
 RUN \
 	update-alternatives --set iptables /usr/sbin/iptables-legacy && \
