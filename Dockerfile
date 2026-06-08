@@ -48,8 +48,8 @@ RUN \
 	e2fsprogs
 
 RUN \
-	update-alternatives --set iptables /usr/sbin/iptables-legacy && \
-	update-alternatives --set ip6tables /usr/sbin/ip6tables-legacy
+	update-alternatives --set iptables /usr/sbin/iptables-nft && \
+	update-alternatives --set ip6tables /usr/sbin/ip6tables-nft
 
 #install docker
 ARG DOCKER_CHANNEL
