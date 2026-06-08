@@ -72,7 +72,7 @@ RUN \
     echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/debian $(lsb_release -cs) $DOCKER_CHANNEL" > /etc/apt/sources.list.d/docker.list && \
     apt-get update && \
     apt-cache madison docker-ce && \
-    apt-get install -y docker-ce=$DOCKER_VERSION docker-ce-cli=$DOCKER_VERSION containerd.io
+    apt-get install -y docker-ce=$DOCKER_VERSION docker-ce-cli=$DOCKER_VERSION docker-buildx-plugin containerd.io
 
 #install diuid-docker-proxy
 COPY --from=diuid-docker-proxy /diuid-docker-proxy /usr/bin
