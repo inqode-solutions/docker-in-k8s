@@ -38,7 +38,7 @@ ssh -f -N -o StrictHostKeyChecking=no \
     -i /home/user/.ssh/id_rsa \
     user@10.0.2.2
 
-PATH=/usr/bin:$PATH dockerd --userland-proxy-path=$(which diuid-docker-proxy) -H tcp://127.0.0.1:2375
+PATH=/usr/bin:$PATH dockerd --storage-driver=vfs --userland-proxy-path=$(which diuid-docker-proxy) -H tcp://127.0.0.1:2375
 
 ret=$?
 if [ $ret -ne 0 ]; then
