@@ -5,7 +5,9 @@ ARG DOCKER_CHANNEL=stable
 ARG DOCKER_VERSION=5:29.1.5-1~debian.13~trixie
 ARG SLIRP4NETNS_VERSION=1.3.4
 
-FROM debian:$DEBIAN_VERSION AS kernel_build
+################################################################
+
+FROM debian:$DEBIAN_VERSION AS kernel_config
 
 RUN \
 	apt-get update && \
@@ -22,20 +24,29 @@ RUN \
 WORKDIR linux-$KERNEL_VERSION
 COPY KERNEL.config .config
 RUN make ARCH=um oldconfig && make ARCH=um prepare
+RUN cp .config /KERNEL.config
+
+################################################################
+
+FROM kernel_config AS kernel_build
+
 RUN make ARCH=um -j `nproc`
 RUN mkdir /out && cp -f linux /out/linux
 
-RUN cp .config /KERNEL.config
+################################################################
 
-# usage: docker build -t foo --target print_config . && docker run -it --rm foo > KERNEL.config
-FROM debian:$DEBIAN_VERSION AS print_config
-COPY --from=kernel_build /KERNEL.config /KERNEL.CONFIG
-CMD ["cat", "/KERNEL.CONFIG"]
+# usage: docker build -o . --target print_config .
+FROM scratch AS print_config
+COPY --from=kernel_config /KERNEL.config /KERNEL.config
+
+################################################################
 
 FROM golang:$GOLANG_VERSION AS diuid-docker-proxy
 COPY diuid-docker-proxy /go/src/github.com/weber-software/diuid/diuid-docker-proxy
 WORKDIR /go/src/github.com/weber-software/diuid/diuid-docker-proxy
 RUN go build -o /diuid-docker-proxy
+
+################################################################
 
 FROM debian:$DEBIAN_VERSION
 
