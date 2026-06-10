@@ -3,7 +3,6 @@ ARG KERNEL_VERSION=6.18.34
 ARG GOLANG_VERSION=1.24.3
 ARG DOCKER_CHANNEL=stable
 ARG DOCKER_VERSION=5:29.1.5-1~debian.13~trixie
-ARG SLIRP4NETNS_VERSION=1.3.4
 
 ################################################################
 
@@ -78,10 +77,7 @@ RUN \
 COPY --from=diuid-docker-proxy /diuid-docker-proxy /usr/bin
 
 #install slirp4netns (used by UML)
-ARG SLIRP4NETNS_VERSION
-RUN \
-  wget -O /usr/bin/slirp4netns https://github.com/rootless-containers/slirp4netns/releases/download/v${SLIRP4NETNS_VERSION}/slirp4netns-x86_64 && \
-  chmod +x /usr/bin/slirp4netns
+RUN apt-get install -y slirp4netns
 
 #install kernel and scripts
 COPY --from=kernel_build /out/linux /linux/linux
