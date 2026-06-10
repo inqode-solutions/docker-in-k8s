@@ -55,7 +55,7 @@ RUN \
 	apt-get update && \
 	apt-get install -y wget net-tools openssh-server psmisc rng-tools \
 	apt-transport-https ca-certificates gnupg2 lsb-release iptables iproute2 \
-	e2fsprogs
+	e2fsprogs slirp4netns
 
 RUN \
 	update-alternatives --set iptables /usr/sbin/iptables-nft && \
@@ -75,9 +75,6 @@ RUN \
 
 #install diuid-docker-proxy
 COPY --from=diuid-docker-proxy /diuid-docker-proxy /usr/bin
-
-#install slirp4netns (used by UML)
-RUN apt-get install -y slirp4netns
 
 #install kernel and scripts
 COPY --from=kernel_build /out/linux /linux/linux
