@@ -30,7 +30,7 @@ ip link set dev vec0 up
 ip addr add 10.0.2.100/24 dev vec0
 ip route add default via 10.0.2.2
 
-#connect to the parent docker container for reverse forwarding of the docker socket
+# Connect to the parent docker container for reverse forwarding of the docker socket
 ssh -f -N -o StrictHostKeyChecking=no \
     -R0.0.0.0:2375:127.0.0.1:2375 \
     -R0.0.0.0:2376:127.0.0.1:2376 \
