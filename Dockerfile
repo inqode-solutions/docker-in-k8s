@@ -97,11 +97,11 @@ RUN \
 	chown -R 1000:3000 /run/ && \
 	chown -R 1000:3000 /etc/docker/
 
-#it is recommended to override /umlshm with
-#--tmpfs /umlshm:rw,nosuid,nodev,exec,size=8g
+# it is recommended to override /umlshm with
+# --tmpfs /umlshm:rw,nosuid,nodev,exec,size=8g
 VOLUME /umlshm
 
-#disk image for /var/lib/docker is created under this directory
+# disk image for /var/lib/docker is created under this directory
 VOLUME /persistent
 
 USER 1000:3000
