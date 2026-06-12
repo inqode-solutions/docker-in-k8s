@@ -29,7 +29,7 @@ func main() {
 	flag.Parse()
 
 	if *proto != "tcp" {
-		log.Fatalf("unsupported proto: %q", *proto)
+		log.Fatalf("unsupported proto: %q", proto)
 	}
 
 	cmd := exec.Command(realProxy,
