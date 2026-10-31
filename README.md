@@ -28,3 +28,9 @@ To run as a non-root user:
 
 This image can be used as a sidecar container in a Kubernetes pod to provide Docker-in-Kubernetes capabilities. This allows your main application containers to build and run Docker images without requiring privileged access.
 
+## Repository
+
+The source code is maintained at [github.com/inqode-solutions/docker-in-k8s](https://github.com/inqode-solutions/docker-in-k8s) and the image is published at [ghcr.io/inqode-solutions/docker-in-k8s](https://ghcr.io/inqode-solutions/docker-in-k8s).
+
+Note: [github.com/weber-software/diuid](https://github.com/weber-software/diuid) is an outdated public mirror and must not be used as a reference for the current state of this project.
+

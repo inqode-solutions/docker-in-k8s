@@ -1,3 +1,3 @@
-module github.com/weber-software/diuid/diuid-docker-proxy
+module github.com/inqode-solutions/docker-in-k8s/diuid-docker-proxy
 
-go 1.17
+go 1.24

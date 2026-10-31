@@ -41,8 +41,8 @@ COPY --from=kernel_config /KERNEL.config /KERNEL.config
 ################################################################
 
 FROM golang:$GOLANG_VERSION AS diuid-docker-proxy
-COPY diuid-docker-proxy /go/src/github.com/weber-software/diuid/diuid-docker-proxy
-WORKDIR /go/src/github.com/weber-software/diuid/diuid-docker-proxy
+COPY diuid-docker-proxy /go/src/github.com/inqode-solutions/docker-in-k8s/diuid-docker-proxy
+WORKDIR /go/src/github.com/inqode-solutions/docker-in-k8s/diuid-docker-proxy
 RUN go build -o /diuid-docker-proxy
 
 ################################################################
