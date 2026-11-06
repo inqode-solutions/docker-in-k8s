@@ -28,4 +28,3 @@ To run as a non-root user:
 
 This image can be used as a sidecar container in a Kubernetes pod to provide Docker-in-Kubernetes capabilities. This allows your main application containers to build and run Docker images without requiring privileged access.
 
-
