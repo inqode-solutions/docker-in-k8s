@@ -37,6 +37,17 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # The pushed docker tag must be equal to the linux kernel version used in the image
+      - name: Extract kernel version
+        id: kernel-version
+        run: |
+          version=$(grep -m1 '^ARG KERNEL_VERSION=' Dockerfile | cut -d'=' -f2)
+          if [ -z "$version" ]; then
+            echo "Unable to extract KERNEL_VERSION from Dockerfile" >&2
+            exit 1
+          fi
+          echo "kernel_version=$version" >> "$GITHUB_OUTPUT"
+
       # Install the cosign tool except on PR
       # https://github.com/sigstore/cosign-installer
       - name: Install cosign
@@ -68,6 +79,12 @@ jobs:
         uses: docker/metadata-action@96383f45573cb7f253c731d3b3ab81c87ef81934 # v5.0.0
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          # Tag the image with the linux kernel version used in the image
+          tags: |
+            type=raw,value=${{ steps.kernel-version.outputs.kernel_version }}
+            type=ref,enable=false
+            type=sha,enable=false
+            type=raw,value=latest,enable=false
 
       # Build and push Docker image with Buildx (don't push on PR)
       # https://github.com/docker/build-push-action

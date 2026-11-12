@@ -10,19 +10,21 @@ The network communication is bridged by slirp.
 
 ## Example
 
-`docker run -it --rm --tmpfs /umlshm:rw,nosuid,nodev,exec,size=8g ghcr.io/inqode-solutions/docker-in-k8s:master docker info`
+The image tag is equal to the version of the linux kernel used in the image (see `KERNEL_VERSION` in the `Dockerfile`).
+
+`docker run -it --rm --tmpfs /umlshm:rw,nosuid,nodev,exec,size=8g ghcr.io/inqode-solutions/docker-in-k8s:7.3 docker info`
 
 To configure memory size and `/var/lib/docker` size:
 
-`docker run -it --rm -e MEM=4G -e DISK=20G --tmpfs /umlshm:rw,nosuid,nodev,exec,size=8g ghcr.io/inqode-solutions/docker-in-k8s:master docker info`
+`docker run -it --rm -e MEM=4G -e DISK=20G --tmpfs /umlshm:rw,nosuid,nodev,exec,size=8g ghcr.io/inqode-solutions/docker-in-k8s:7.3 docker info`
 
 To preserve `/var/lib/docker` disk:
 
-`docker run -it --rm -v /somewhere:/persistent --tmpfs /umlshm:rw,nosuid,nodev,exec,size=8g ghcr.io/inqode-solutions/docker-in-k8s:master docker info`
+`docker run -it --rm -v /somewhere:/persistent --tmpfs /umlshm:rw,nosuid,nodev,exec,size=8g ghcr.io/inqode-solutions/docker-in-k8s:7.3 docker info`
 
 To run as a non-root user:
 
-`docker run --user 1000:3000 -it --rm --tmpfs /umlshm:rw,nosuid,nodev,exec,size=8g ghcr.io/inqode-solutions/docker-in-k8s:master docker info`
+`docker run --user 1000:3000 -it --rm --tmpfs /umlshm:rw,nosuid,nodev,exec,size=8g ghcr.io/inqode-solutions/docker-in-k8s:7.3 docker info`
 
 ## Kubernetes Sidecar
 
