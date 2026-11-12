@@ -26,5 +26,10 @@ jobs:
     - name: "Test: nginx"
       run: |
         docker run -d --name diuid-nginx --tmpfs /umlshm:rw,nosuid,nodev,exec,size=2g -p 8080:8080 diuid docker run -p 8080:80 nginx:alpine
-        for i in {1..5}; do curl http://localhost:8080 && break || sleep 10; done
+        ok=0
+        for i in {1..5}; do
+          if curl -fsS http://localhost:8080 | grep -q nginx; then ok=1; break; fi
+          sleep 10
+        done
+        [ "$ok" = 1 ] || { docker logs diuid-nginx; exit 1; }
         docker rm -f diuid-nginx
